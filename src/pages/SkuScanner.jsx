@@ -61,11 +61,8 @@ const SkuScanner = () => {
     const parts = sku.split("-");
     let styleNumber = "";
     let size = "";
-
-    if (parts.length >= 2) {
-      styleNumber = parts[0];
-      size = parts.find((part) => sizes.includes(part.toLowerCase())) || "";
-    }
+    styleNumber = parts[0];
+    size = parts.length === 2 ? parts[1]?.toUpperCase() : parts[2]?.toUpperCase();
 
     return { styleNumber, size };
   };
@@ -566,7 +563,7 @@ const SkuScanner = () => {
           {unmatchedItems.length > 0 && (
             <div className="bg-white rounded-lg p-6 shadow">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Cutting Items ({unmatchedItems.filter((item)=> item?.status.toLowerCase() === "cutting" ).length})
+                Picklist Items ({unmatchedItems.filter((item)=> item?.status.toLowerCase() === "cutting" ).length})
               </h2>
               <div className="overflow-y-auto ">
                 <table className="min-w-full divide-y divide-gray-200">

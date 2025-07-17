@@ -20,7 +20,7 @@ const Navbar = () => {
           </div>
           
           <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-            <Link
+            {/* <Link
               to="/picklist"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                 isActive('/picklist')
@@ -29,7 +29,7 @@ const Navbar = () => {
               }`}
             >
               Picklist Scanner
-            </Link>
+            </Link> */}
             <Link
               to="/sku"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${

@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-// import {patterData} from "./"
+import  jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import UploadOptions from "../components/UploadOptions"
+import PicklistIdInput from '../components/PicklistId_Input';
+
+import patternData from "../csvjson.json"
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -16,6 +19,7 @@ const Orders = () => {
   const [selectedChannel, setSelectedChannel] = useState('all');
   const [product, setProductsData] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [picklistId,setPicklistId] = useState(null);
   const [sidebarCounts, setSidebarCounts] = useState({
     all: 0,
     found: 0,
@@ -24,7 +28,6 @@ const Orders = () => {
     no_fabric: 0
   });
 
-console.log(patterData)
 
  const fetchProducts = async () => {
     const response = await fetch(
@@ -40,14 +43,48 @@ console.log(patterData)
 
 
   // Fetch orders from API
+  // const fetchOrders = async () => {
+  //   setLoading(true);
+  //   try {
+  //     let url = 'https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records';
+      
+  //     if (selectedDate) {
+  //       url += `?where=(scanned_timestamp,eq,exactDate,${selectedDate})`;
+  //     }
+
+  //     const response = await axios.get(url, {
+  //       headers: {
+  //         'xc-token': '-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1',
+  //       },
+  //     });
+      
+  //     const fetchedOrders = response.data.list || [];
+  //     setOrders(fetchedOrders);
+  //     setError(null);
+  //     updateSidebarCounts(fetchedOrders, 'all');
+  //   } catch (err) {
+  //     setError('Failed to fetch orders');
+  //     console.error('Error fetching orders:', err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+   // Fetch orders from API
   const fetchOrders = async () => {
     setLoading(true);
     try {
       let url = 'https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records';
-      
-      if (selectedDate) {
-        url += `?where=(scanned_timestamp,eq,exactDate,${selectedDate})`;
+
+      if(!picklistId){
+        alert("Please scan picklist id");
+        return
       }
+      
+      // if (picklistId) {
+        
+      // }
+      url += `?where=(picklist_id,eq,${Number(picklistId)})`;
 
       const response = await axios.get(url, {
         headers: {
@@ -86,9 +123,7 @@ console.log(patterData)
   useEffect(() => {
     const filtered = orders.filter(order => {
       const matchesSearch = 
-        order.style_number?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.picklist_id?.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.employee_id?.toString().toLowerCase().includes(searchTerm.toLowerCase());
+        order.style_number?.toString().toLowerCase().includes(searchTerm.toLowerCase())        
       
       const matchesChannel = 
         selectedChannel === 'all' || 
@@ -111,13 +146,13 @@ console.log(patterData)
   }, []);
 
   // Apply date filter
-  const applyDateFilter = () => {
-    if (selectedDate) {
-      fetchOrders();
-    } else {
-      alert('Please select a date');
-    }
-  };
+  // const applyDateFilter = () => {
+  //   if (selectedDate) {
+  //     fetchOrders();
+  //   } else {
+  //     alert('Please select a date');
+  //   }
+  // };
 
   // Clear all filters
   const clearFilters = () => {
@@ -150,180 +185,66 @@ console.log(patterData)
   //     alert('No found orders available for MRP tags');
   //     return;
   //   }
-  //   exportToExcel(foundOrders, 'MRP_Tags');
+
+
+  //   "Style Number":"",
+  //   "Size": "",
+  //   "Color" :"",
+  //   "Brand":"",
+  //   "Pattern#":"",
+  //   "Style Name":"",
+  //   "(Do not touch) Order id":"",
+  //   "image 100x100 qr image":"https://quickchart.io/qr?text=94193"
+
+    
   // };
 
-
-  const downloadMRPTags = async () => {
+const downloadMRPTags = () => {
   const foundOrders = filteredOrders.length > 0 
-    ? filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
-    : orders.filter(o => o.status?.toLowerCase() === 'found');
-  
+  ? filteredOrders
+    : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+
   if (foundOrders.length === 0) {
     alert('No found orders available for MRP tags');
     return;
   }
 
-  // Show progress bar
-  const progressBar = document.createElement("div");
-  progressBar.style.position = "fixed";
-  progressBar.style.top = "0";
-  progressBar.style.left = "0";
-  progressBar.style.width = "100%";
-  progressBar.style.height = "5px";
-  progressBar.style.backgroundColor = "#f3f4f6";
-  progressBar.style.zIndex = "9999";
+  const headers = [
+    "Style Number", "Size", "Color", "Brand", 
+    "Style Name", "(Do not touch) Order Id", "image 100x100 qr image"
+  ];
 
-  const progressIndicator = document.createElement("div");
-  progressIndicator.style.height = "100%";
-  progressIndicator.style.backgroundColor = "#3b82f6";
-  progressIndicator.style.width = "0%";
-  progressIndicator.style.transition = "width 0.3s";
+  const csvRows = [];
 
-  progressBar.appendChild(progressIndicator);
-  document.body.appendChild(progressBar);
+  // Add headers as first row
+  csvRows.push(headers.join(','));
 
-  try {
-    // Create a hidden container
-    const container = document.createElement("div");
-    container.style.width = "378px"; // Same as your tag width
-    container.style.padding = "10px";
-    container.style.boxSizing = "border-box";
-    // container.style.display = "grid";
-    // container.style.gridTemplateColumns = "1fr"; // One tag per page
-    container.style.gap = "10px";
-    container.style.fontFamily = "sans-serif";
-    container.style.position = "fixed";
-    container.style.top = "0";
-    container.style.left = "0";
-    container.style.visibility = "hidden";
-    container.style.opacity = "0";
-    container.style.zIndex = "-1";
-    container.style.background = "white";
+  // Convert order data to rows
+  foundOrders.forEach(order => {
+    const row = [
+      `"${order.style_number || ''}"`,
+      `"${order.size || ''}"`,
+      `"${patternData.find((o)=> o.style_number === order.style_number).color || "Other"}"`,
+      `"${order.brand || '12345'}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).style_name || "Qurvii Products"}"`,
+      `"${order.id || '12345'}"`,
+      `"https://quickchart.io/qr?text=${order.id || '12345'}"`
+    ];
+    csvRows.push(row.join(','));
+  });
 
-    // Generate MRP tags
-    foundOrders.forEach((order) => {
-      const tag = document.createElement("div");
-      tag.style.cssText = `
-        width: 378px !important;
-        height: 189px;
-        padding: 10px;
-        background-color: #fff;
-        color: #000;
-        font-size: 12px;
-        font-family: sans-serif;
-        border: 1px solid #f2f2f2;
-        border-radius: 1rem;
-        position: relative;
-        font-weight: bold;
-      `;
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
 
-      // Find product details from your products API if needed
-      const matchedProduct = product.find(p => p.style_code === Number(order.style_number));
-
-      tag.innerHTML = `
-        <p class="w-70">Product : ${order.productName || matchedProduct?.style_name || "Qurvii Product"} </p>
-        <p>Brand: Qurvii | SKU: ${order.style_number}-${order.color}-${order.size}</p>
-        <p class="capitalize">Color: ${order.color} | Size: ${order.size}</p>
-        <p>MRP: ₹${matchedProduct?.mrp || "NA"} (Incl. of all taxes)</p>
-        <p>Net Qty: 1 | Unit: 1 Pcs</p>
-        <p>
-          MFG & MKT BY: Qurvii, 2nd Floor, B-149 <br/>Sector-6, Noida, UP,
-          201301
-        </p>
-        <p>Contact: support@qurvii.com</p>
-        <p class="absolute bottom-11 right-8">Order Id: ${order.order_id}</p>
-        <div class="absolute top-10 right-8">
-          <img 
-            src="https://quickchart.io/qr?text=${encodeURIComponent(order.order_id)}&size=80" 
-            alt="QR Code" 
-            width="80" 
-            height="80" 
-            crossorigin="anonymous"
-          />
-        </div>
-      `;
-
-      container.appendChild(tag);
-    });
-
-    document.body.appendChild(container);
-
-    // Wait for images to load
-    const images = Array.from(container.querySelectorAll("img"));
-    let loaded = 0;
-
-    await Promise.all(
-      images.map(
-        (img) =>
-          new Promise((resolve) => {
-            if (img.complete) {
-              loaded++;
-              progressIndicator.style.width = `${Math.round(
-                (loaded / images.length) * 100
-              )}%`;
-              resolve();
-            } else {
-              img.onload = img.onerror = () => {
-                loaded++;
-                progressIndicator.style.width = `${Math.round(
-                  (loaded / images.length) * 100
-                )}%`;
-                resolve();
-              };
-            }
-          })
-      )
-    );
-
-    // Make container visible just before capture
-    container.style.visibility = "visible";
-    container.style.opacity = "1";
-
-    // Generate PDF
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: [100, 50], // Same as your tag dimensions
-    });
-
-    const totalTags = container.children.length;
-
-    for (let i = 0; i < totalTags; i++) {
-      const tag = container.children[i];
-      const tagContainer = document.createElement("div");
-      tagContainer.appendChild(tag.cloneNode(true));
-      document.body.appendChild(tagContainer);
-
-      const canvas = await html2canvas(tagContainer, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        backgroundColor: "#FFFFFF",
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = 100;
-      const pdfHeight = 50;
-
-      if (i !== 0) pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-      document.body.removeChild(tagContainer);
-    }
-
-    pdf.save(`MRP_Tags_${new Date().toISOString().split("T")[0]}.pdf`);
-  } catch (error) {
-    console.error("PDF generation error:", error);
-    alert("Failed to generate PDF. Please try again.");
-  } finally {
-    // Cleanup
-    const containers = document.querySelectorAll('div[style*="fixed"]');
-    containers.forEach((el) => el.remove());
-    progressBar.remove();
-  }
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `MRP_Tags_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
+
 
   const downloadPackingList = () => {
     const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders.filter((order)=>order.status?.toLowerCase().includes("found"));
@@ -334,211 +255,90 @@ console.log(patterData)
     exportToExcel(ordersToExport, 'Packing_List');
   };
 
-  const downloadQRCodeSheet = () => {
-    const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders;
-    if (ordersToExport.length === 0) {
-      alert('No orders available for QR codes');
-      return;
-    }
-    exportToExcel(ordersToExport, 'QR_Code_Sheet');
-  };
+  
+
+  
+const downloadQRCodeSheet = () => {
+  const foundOrders = filteredOrders.length > 0 
+  ? filteredOrders
+    : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+
+  if (foundOrders.length === 0) {
+    alert('No found orders available for MRP tags');
+    return;
+  }
+
+  const headers = [
+  "Channel",
+  "Style Number",
+  "Size",
+  "Color",
+  "Brand",
+  "Date",
+  "Pattern#",
+  "Style Type",
+  "Style Name",
+  "Style 1",
+  "Style 2",
+  "Accessory 1",
+  "Accessory 2",
+  "Wash Care",
+  "(Do not touch) Order Id",
+  "image 100x100 qr image"
+];
+
+
+  const csvRows = [];
+
+  // Add headers as first row
+  csvRows.push(headers.join(','));
+
+  // Convert order data to rows
+  foundOrders.forEach(order => {
+    const row = [
+      `"${order.channel || 'NA'}"`,
+      `"${order.style_number || ''}"`,
+      `"${order.size || ''}"`,
+      `"${patternData.find((o)=> o.style_number === order.style_number).color || "Other"}"`,
+      `"${order.brand || 'Qurvii'}"`,
+      `"${order.created_at || new Date().toLocaleString()}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).pattern || "NA"}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).style_type || "NA"}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).style_name || "Qurvii Products"}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).style_1 || ""}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).style_2 || ""}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).accessory1 || ""}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).accessory2 || ""}"`,
+     `"${patternData.find((o)=> o.style_number === order.style_number).wash_care || ""}"`,
+      `"${order.id || '12345'}"`,
+      `"https://quickchart.io/qr?text=${order.id || '12345'}"`
+    ];
+    csvRows.push(row.join(','));
+  });
+
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `QR_CODE_SHEET${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 
 
 // qr code download sheet 
 
-const downloadQRCodeSheetAsPDF = async () => {
-  const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders;
-
-  if (ordersToExport.length === 0) {
-    alert("No orders available for QR codes");
-    return;
-  }
-
-  // Show progress bar
-  const progressBar = document.createElement("div");
-  progressBar.style.position = "fixed";
-  progressBar.style.top = "0";
-  progressBar.style.left = "0";
-  progressBar.style.width = "100%";
-  progressBar.style.height = "5px";
-  progressBar.style.backgroundColor = "#f3f4f6";
-  progressBar.style.zIndex = "9999";
-
-  const progressIndicator = document.createElement("div");
-  progressIndicator.style.height = "100%";
-  progressIndicator.style.backgroundColor = "#3b82f6";
-  progressIndicator.style.width = "0%";
-  progressIndicator.style.transition = "width 0.3s";
-
-  progressBar.appendChild(progressIndicator);
-  document.body.appendChild(progressBar);
-
-  try {
-    // Create a hidden container
-    const container = document.createElement("div");
-    container.style.width = "210mm";
-    container.style.padding = "5mm";
-    container.style.boxSizing = "border-box";
-    container.style.display = "grid";
-    container.style.gridTemplateColumns = "repeat(4, 1fr)";
-    container.style.gap = "5mm";
-    container.style.fontFamily = "'Inter', sans-serif";
-    container.style.position = "fixed";
-    container.style.top = "0";
-    container.style.left = "0";
-    container.style.visibility = "hidden";
-    container.style.opacity = "0";
-    container.style.zIndex = "-1";
-    container.style.background = "white"; // Ensure white background
-
-    // Generate QR cards
-    ordersToExport.forEach((product) => {
-      const card = document.createElement("div");
-      card.style.cssText = `
-        border: 2px dotted #ccc;
-        padding: 2px;
-        border-radius: 10px;
-        font-size: 10px;
-        box-sizing: border-box;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: auto;
-        background: white;
-      `;
-
-      const qrText = product.style_number || "missing";
-      const qrImage = `https://quickchart.io/qr?text=${encodeURIComponent(
-        qrText
-      )}&size=100`;
-
-      card.innerHTML = `
-        <div style="margin-bottom: 5px;">
-          <div><strong>Order ID:</strong> ${product.id || "ORD000"}</div>
-          <div><strong>Channel:</strong> <b>${product.channel || ""}</b></div>
-          <div><strong>Date:</strong> ${new Date().toLocaleString()}</div>
-          <div><strong>Brand:</strong> ${product.brand || "Qurvii"}</div>
-          <div><strong>Accessory:</strong> ${product["Accessory 1"] || "N/A"}</div>
-          <div><strong>Wash Care:</strong> ${product["Wash Care"] || "N/A"}</div>
-          <div>
-            <strong>Style No:</strong>
-            <b>${product.style_number || ""}</b>
-            <b>(${product.size || ""})</b>
-          </div>
-        </div>
-       <div style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-    <img 
-      src="${qrImage}" 
-      alt="QR Code" 
-      width="100" 
-      height="100" 
-      crossorigin="anonymous"
-      style="display: block;"  // Ensures no extra space around the image
-    />
-  </div>
-      `;
-
-      container.appendChild(card);
-    });
-
-    document.body.appendChild(container);
-
-    // Wait for images to load
-    const images = Array.from(container.querySelectorAll("img"));
-    let loaded = 0;
-
-    await Promise.all(
-      images.map(
-        (img) =>
-          new Promise((resolve) => {
-            if (img.complete) {
-              loaded++;
-              progressIndicator.style.width = `${Math.round(
-                (loaded / images.length) * 100
-              )}%`;
-              resolve();
-            } else {
-              img.onload = img.onerror = () => {
-                loaded++;
-                progressIndicator.style.width = `${Math.round(
-                  (loaded / images.length) * 100
-                )}%`;
-                resolve();
-              };
-            }
-          })
-      )
-    );
-
-    // Make container visible just before capture
-    container.style.visibility = "visible";
-    container.style.opacity = "1";
-
-    // Generate PDF
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
-
-    const totalCards = container.children.length;
-    const cardsPerPage = 16; // 4x4 grid per A4 page
-
-    for (let i = 0; i < totalCards; i += cardsPerPage) {
-      const pageContainer = document.createElement("div");
-      pageContainer.style.cssText = `
-        width: 210mm;
-        padding: 10mm;
-        box-sizing: border-box;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 5mm;
-        background: white;
-      `;
-
-      const subset = Array.from(container.children).slice(i, i + cardsPerPage);
-      subset.forEach((card) => pageContainer.appendChild(card.cloneNode(true)));
-
-      document.body.appendChild(pageContainer);
-
-      const canvas = await html2canvas(pageContainer, {
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        backgroundColor: "#FFFFFF", // Force white background
-      });
-
-      const imgData = canvas.toDataURL("image/png");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = 210;
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      if (i !== 0) pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-      document.body.removeChild(pageContainer);
-    }
-
-    pdf.save(`QR_Code_Sheet_${new Date().toISOString().split("T")[0]}.pdf`);
-  } catch (error) {
-    console.error("PDF generation error:", error);
-    alert("Failed to generate PDF. Please try again.");
-  } finally {
-    // Cleanup
-    const containers = document.querySelectorAll('div[style*="fixed"]');
-    containers.forEach((el) => el.remove());
-    progressBar.remove();
-  }
-};
   // Export to Excel function
   const exportToExcel = (data, fileName) => {
     const worksheet = XLSX.utils.json_to_sheet(data.map(order => ({
       'Picklist ID': order.picklist_id,
       'Channel': order.channel,
-      'Style Number': `${order.style_number}-${order.color}-${order.size}`,
-      // 'Size': order.size,
+      'Sku': `${order.style_number}-${patternData.find((o)=> o.style_number === order.style_number).color || "Other"}-${order.size}`,
+      '#Pattern No': patternData.find((o)=> o.style_number === order.style_number).pattern || "",
       'Brand': order.brand,
       'Status': order.status,
       'Employee ID': order.employee_id,
@@ -550,7 +350,129 @@ const downloadQRCodeSheetAsPDF = async () => {
     XLSX.writeFile(workbook, `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  // Status color coding
+  
+
+
+
+
+
+
+
+// const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
+//   const summaryMap = {};
+
+//   data
+//   .filter((o)=> o?.status.toLowerCase().includes("cutting"))
+//   .forEach(order => {
+//     const style = order.style_number;
+//     const size = order.size;
+//     const patternInfo = patternData.find(p => p.style_number === style) || {};
+//     const pattern = patternInfo.pattern || '';
+//     const key = `${pattern}-${style}`;
+
+//     if (!summaryMap[key]) {
+//       summaryMap[key] = {
+//         '#Pattern': pattern,
+//         'Style': style,
+//         'XXS': "", 'XS': "", 'S': "", 'M': "",
+//         'L': "", 'XL': "", '2XL': "", '3XL': "", '4XL': "", '5XL': ""
+//       };
+//     }
+
+//     if (summaryMap[key][size] !== undefined) {
+//       summaryMap[key][size]++;
+//     }
+//   });
+
+//   const tableData = Object.values(summaryMap).map(row => ([
+//     row['#Pattern'], row['Style'],
+//     ...sizes.map(size => row[size] || "")
+//   ]));
+
+//   const doc = new jsPDF();
+//   doc.setFontSize(14);
+//   doc.text('Cutting List Report', 105, 15, { align: 'center' });
+//   doc.setFontSize(10);
+//   doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 22, { align: 'center' });
+
+//   autoTable(doc,{
+//     startY: 30,
+//     head: [['#Pattern', 'Style', ...sizes]],
+//     body: tableData,
+//     styles: { halign: 'center' },
+//     headStyles: { fillColor: [52, 73, 94] },
+//   });
+
+//   doc.save(`${fileName}_${new Date().toISOString().split('T')[0]}.pdf`);
+// };
+
+
+const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
+
+const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
+  const summaryMap = {};
+
+  data
+    .filter((o) => o?.status?.toLowerCase()?.includes("cutting"))
+    .forEach(order => {
+      const style = order.style_number;
+      const size = order.size;
+      const patternInfo = patternData.find(p => p.style_number === style) || {};
+      const pattern = patternInfo.pattern || '';
+      const key = `${pattern}-${style}`;
+
+      if (!summaryMap[key]) {
+        summaryMap[key] = {
+          '#Pattern': pattern,
+          'Style': style,
+          ...Object.fromEntries(sizes.map(size => [size, 0])),
+          'Total': 0
+        };
+      }
+
+      if (summaryMap[key][size] !== undefined) {
+        summaryMap[key][size]++;
+        summaryMap[key]['Total']++;
+      }
+    });
+
+  // Prepare table data
+  const tableData = Object.values(summaryMap).map(row => ([
+    row['#Pattern'], row['Style'],
+    ...sizes.map(size => row[size] || ""),
+    row['Total']
+  ]));
+
+  // Add a grand total row
+  const totalRow = [
+    'Grand Total', '',
+    ...sizes.map(size => {
+      return tableData.reduce((sum, row) => sum + (parseInt(row[sizes.indexOf(size) + 2]) || 0), 0);
+    }),
+    tableData.reduce((sum, row) => sum + (parseInt(row[sizes.length + 2]) || 0), 0)
+  ];
+
+  tableData.push(totalRow);
+
+  // Create PDF
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text('Cutting List Report', 105, 15, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 22, { align: 'center' });
+
+  autoTable(doc, {
+    startY: 30,
+    head: [['#Pattern', 'Style', ...sizes, 'Total']],
+    body: tableData,
+    styles: { halign: 'center', lineWidth: 0.1, lineColor: 10 },
+    headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255] },
+  });
+
+  doc.save(`${fileName}_${new Date().toISOString().split('T')[0]}.pdf`);
+};
+
+  
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'found': return 'bg-green-100 text-green-800';
@@ -581,7 +503,7 @@ const downloadQRCodeSheetAsPDF = async () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Fixed Sidebar */}
-      <div className="w-64 bg-white p-4 border-r border-gray-200 fixed h-full overflow-y-auto">
+      <div className="w-64 bg-white mt-15 p-4 border-r border-gray-200 fixed h-full overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
           <button 
@@ -634,7 +556,17 @@ const downloadQRCodeSheetAsPDF = async () => {
               onClick={downloadCuttingReport}
               className="w-full flex items-center justify-between px-3 py-2 bg-yellow-50 text-yellow-800 rounded-md hover:bg-yellow-100 text-sm font-medium"
             >
-              <span>Cutting List</span>
+              <span>Cutting Report</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+
+            <button
+              onClick={()=>exportToPDF(filteredOrders,patternData,"Cutting Summary")}
+              className="w-full flex items-center justify-between px-3 py-2 bg-red-50 text-yellow-800 rounded-md hover:bg-red-100 text-sm font-medium"
+            >
+              <span>Cutting Summary</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
@@ -658,7 +590,7 @@ const downloadQRCodeSheetAsPDF = async () => {
               </svg>
             </button>
             <button
-              onClick={downloadQRCodeSheetAsPDF}
+              onClick={downloadQRCodeSheet}
               className="w-full flex items-center justify-between px-3 py-2 bg-purple-50 text-purple-800 rounded-md hover:bg-purple-100 text-sm font-medium"
             >
               <span>QR Code Sheet</span>
@@ -669,13 +601,20 @@ const downloadQRCodeSheetAsPDF = async () => {
 
           </div>
         </div>
+
+
+        {/* Uload options  */}
+              <div>
+                <UploadOptions/>
+              </div>
+        
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 ml-64 overflow-y-auto">
+      <div className="flex-1 ml-64 overflow-y-auto mt-15">
         <div className="container mx-auto p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Order History</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Order Synchronization</h1>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">
                 Showing {filteredOrders.length} of {orders.length} orders
@@ -685,52 +624,14 @@ const downloadQRCodeSheetAsPDF = async () => {
 
           {/* Filters Card */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Channel</label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={selectedChannel}
-                  onChange={(e) => setSelectedChannel(e.target.value)}
-                >
-                  <option value="all">All Channels</option>
-                  <option value="MYNTRA">MYNTRA</option>
-                  <option value="AJIO">AJIO</option>
-                  <option value="NYKAA">NYKAA</option>
-                  <option value="TATACLIQ">TATACLIQ</option>
-                  <option value="SHOPIFY">SHOPIFY</option>
-                  <option value="SHOPPERSSTOP">SHOPPERSSTOP</option>
-                </select>
-              </div>
-              
-              <div className="flex items-end space-x-2">
-                <button
-                  onClick={applyDateFilter}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Apply Filters
-                </button>
-                <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  Clear
-                </button>
-              </div>
+  
+             <div>
+              <PicklistIdInput picklistId={picklistId} setPicklistId={setPicklistId} fetchOrders={fetchOrders} />
             </div>
           </div>
 
           {/* Search Card */}
+          {orders.length > 0 ?<>
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Search Orders</label>
@@ -745,7 +646,7 @@ const downloadQRCodeSheetAsPDF = async () => {
           </div>
 
           {/* Orders Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+         <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -786,7 +687,9 @@ const downloadQRCodeSheetAsPDF = async () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div>  </>
+          : ""}
+
         </div>
       </div>
     </div>
