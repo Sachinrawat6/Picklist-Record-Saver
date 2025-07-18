@@ -162,6 +162,7 @@ const SkuScanner = () => {
         {
           params: {
             where: `(picklist_id,eq,${id})`,
+            limit:'1000'
           },
           headers: {
             "xc-token": "-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1",
@@ -196,11 +197,7 @@ const SkuScanner = () => {
       const ACCESS_TOKEN = "-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1";
       const url = "https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records";
 
-      // Get all records that need to be updated (those with status other than Pending)
-    //   const recordsToUpdate = picklistRecords.filter(
-    //     record => record.status !== "Pending"
-    //   );
-
+    
       // Create records in batches
       const batchSize = 10;
       for (let i = 0; i < picklistRecords.length; i += batchSize) {

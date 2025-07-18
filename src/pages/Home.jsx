@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const Home = () => {
   return (
-     <div className="text-center py-12">
+     <div className="text-center py-12 mt-10">
                 <h2 className="text-2xl font-bold mb-4">Welcome to Inventory Scanner</h2>
                 <p className="text-gray-600 mb-6">
                   Choose a scanner from the navigation menu above

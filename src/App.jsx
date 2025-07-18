@@ -5,6 +5,8 @@ import SkuScanner from './pages/SkuScanner';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Orders from './pages/Orders';
+import SyncLog from "./pages/SyncLog";
+import {PicklistRecordContextProvider} from "./context/PicklistRecordContext"
 
 const App = () => {
   return (
@@ -12,13 +14,16 @@ const App = () => {
       <div className="min-h-screen bg-gray-100">
        <Navbar/>
         <main className="w-full mx-auto">
+          <PicklistRecordContextProvider>
           <Routes>
             <Route path="/picklist" element={<PicklistScanner />} />
             <Route path="/sku" element={<SkuScanner />} />
             <Route path="/" element={<Home/>} />
             <Route path="/orders" element={<Orders/>} />
+            <Route path="/sync-log" element={<SyncLog/>} />
 
           </Routes>
+          </PicklistRecordContextProvider>
         </main>
 
       </div>

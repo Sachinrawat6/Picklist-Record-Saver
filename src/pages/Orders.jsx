@@ -6,6 +6,7 @@ import  jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import UploadOptions from "../components/UploadOptions"
 import PicklistIdInput from '../components/PicklistId_Input';
+import PicklistAndSyncIdSaver from "../utility/PicklistAndSyncIdSaver";
 
 import patternData from "../csvjson.json"
 
@@ -19,7 +20,8 @@ const Orders = () => {
   const [selectedChannel, setSelectedChannel] = useState('all');
   const [product, setProductsData] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [picklistId,setPicklistId] = useState(null);
+  const [picklistId,setPicklistId] = useState("");
+  const [syncOrders,setSyncOrders] = useState([]);
   const [sidebarCounts, setSidebarCounts] = useState({
     all: 0,
     found: 0,
@@ -84,7 +86,7 @@ const Orders = () => {
       // if (picklistId) {
         
       // }
-      url += `?where=(picklist_id,eq,${Number(picklistId)})`;
+      url += `?where=(picklist_id,eq,${Number(picklistId)})&limit=1000` ;
 
       const response = await axios.get(url, {
         headers: {
@@ -145,14 +147,6 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  // Apply date filter
-  // const applyDateFilter = () => {
-  //   if (selectedDate) {
-  //     fetchOrders();
-  //   } else {
-  //     alert('Please select a date');
-  //   }
-  // };
 
   // Clear all filters
   const clearFilters = () => {
@@ -176,33 +170,16 @@ const Orders = () => {
     exportToExcel(cuttingOrders, 'Cutting_Report');
   };
 
-  // const downloadMRPTags = () => {
-  //   const foundOrders = filteredOrders.length > 0 
-  //     ? filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
-  //     : orders.filter(o => o.status?.toLowerCase() === 'found');
-    
-  //   if (foundOrders.length === 0) {
-  //     alert('No found orders available for MRP tags');
-  //     return;
-  //   }
-
-
-  //   "Style Number":"",
-  //   "Size": "",
-  //   "Color" :"",
-  //   "Brand":"",
-  //   "Pattern#":"",
-  //   "Style Name":"",
-  //   "(Do not touch) Order id":"",
-  //   "image 100x100 qr image":"https://quickchart.io/qr?text=94193"
-
-    
-  // };
+ 
+ 
 
 const downloadMRPTags = () => {
-  const foundOrders = filteredOrders.length > 0 
-  ? filteredOrders
-    : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+  const foundOrders = syncOrders?.cutting_list.length > 0 
+  // ? syncOrders
+    // : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+
+     ? syncOrders
+    : syncOrders
 
   if (foundOrders.length === 0) {
     alert('No found orders available for MRP tags');
@@ -220,15 +197,15 @@ const downloadMRPTags = () => {
   csvRows.push(headers.join(','));
 
   // Convert order data to rows
-  foundOrders.forEach(order => {
+  syncOrders?.cutting_list.forEach(order => {
     const row = [
       `"${order.style_number || ''}"`,
       `"${order.size || ''}"`,
       `"${patternData.find((o)=> o.style_number === order.style_number).color || "Other"}"`,
-      `"${order.brand || '12345'}"`,
+      `"${order.brand || 'Qurvii'}"`,
      `"${patternData.find((o)=> o.style_number === order.style_number).style_name || "Qurvii Products"}"`,
-      `"${order.id || '12345'}"`,
-      `"https://quickchart.io/qr?text=${order.id || '12345'}"`
+      `"${order.order_id || ''}"`,
+      `"https://quickchart.io/qr?text=${order.order_id || ''}"`
     ];
     csvRows.push(row.join(','));
   });
@@ -247,7 +224,8 @@ const downloadMRPTags = () => {
 
 
   const downloadPackingList = () => {
-    const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders.filter((order)=>order.status?.toLowerCase().includes("found"));
+    // const ordersToExport = filteredOrders.length > 0 ? filteredOrders : orders.filter((order)=>order.status?.toLowerCase().includes("found"));
+    const ordersToExport = orders.filter((order)=> !order?.status.toLowerCase().includes("cutting") && !order?.status.toLowerCase().includes("nofab"))
     if (ordersToExport.length === 0) {
       alert('No orders available for packing list');
       return;
@@ -259,9 +237,14 @@ const downloadMRPTags = () => {
 
   
 const downloadQRCodeSheet = () => {
-  const foundOrders = filteredOrders.length > 0 
-  ? filteredOrders
-    : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+  // const foundOrders = filteredOrders.length > 0 
+  // ? filteredOrders
+  //   : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+
+
+   const foundOrders = syncOrders?.cutting_list.length > 0 
+  ? syncOrders?.cutting_list
+    : []
 
   if (foundOrders.length === 0) {
     alert('No found orders available for MRP tags');
@@ -310,8 +293,8 @@ const downloadQRCodeSheet = () => {
      `"${patternData.find((o)=> o.style_number === order.style_number).accessory1 || ""}"`,
      `"${patternData.find((o)=> o.style_number === order.style_number).accessory2 || ""}"`,
      `"${patternData.find((o)=> o.style_number === order.style_number).wash_care || ""}"`,
-      `"${order.id || '12345'}"`,
-      `"https://quickchart.io/qr?text=${order.id || '12345'}"`
+      `"${order.order_id || ''}"`,
+      `"https://quickchart.io/qr?text=${order.order_id || ''}"`
     ];
     csvRows.push(row.join(','));
   });
@@ -357,65 +340,15 @@ const downloadQRCodeSheet = () => {
 
 
 
-
-// const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
-//   const summaryMap = {};
-
-//   data
-//   .filter((o)=> o?.status.toLowerCase().includes("cutting"))
-//   .forEach(order => {
-//     const style = order.style_number;
-//     const size = order.size;
-//     const patternInfo = patternData.find(p => p.style_number === style) || {};
-//     const pattern = patternInfo.pattern || '';
-//     const key = `${pattern}-${style}`;
-
-//     if (!summaryMap[key]) {
-//       summaryMap[key] = {
-//         '#Pattern': pattern,
-//         'Style': style,
-//         'XXS': "", 'XS': "", 'S': "", 'M': "",
-//         'L': "", 'XL': "", '2XL': "", '3XL': "", '4XL': "", '5XL': ""
-//       };
-//     }
-
-//     if (summaryMap[key][size] !== undefined) {
-//       summaryMap[key][size]++;
-//     }
-//   });
-
-//   const tableData = Object.values(summaryMap).map(row => ([
-//     row['#Pattern'], row['Style'],
-//     ...sizes.map(size => row[size] || "")
-//   ]));
-
-//   const doc = new jsPDF();
-//   doc.setFontSize(14);
-//   doc.text('Cutting List Report', 105, 15, { align: 'center' });
-//   doc.setFontSize(10);
-//   doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 22, { align: 'center' });
-
-//   autoTable(doc,{
-//     startY: 30,
-//     head: [['#Pattern', 'Style', ...sizes]],
-//     body: tableData,
-//     styles: { halign: 'center' },
-//     headStyles: { fillColor: [52, 73, 94] },
-//   });
-
-//   doc.save(`${fileName}_${new Date().toISOString().split('T')[0]}.pdf`);
-// };
-
-
 const sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'];
 
 const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
   const summaryMap = {};
 
   data
-    .filter((o) => o?.status?.toLowerCase()?.includes("cutting"))
+    // .filter((o) => o?.status?.toLowerCase()?.includes("cutting"))
     .forEach(order => {
-      const style = order.style_number;
+      const style = Number(order.style_number);
       const size = order.size;
       const patternInfo = patternData.find(p => p.style_number === style) || {};
       const pattern = patternInfo.pattern || '';
@@ -483,6 +416,63 @@ const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
     }
   };
 
+
+
+
+
+// *************************************Order synchronization ***********************************
+
+const syncOrdersToFastApi = async () => {
+  if (orders.length === 0) {
+    alert("No orders found to sync");
+    return;
+  }
+  
+  try {  
+    const payload = orders.map((order) => ({
+      // channel: order.channel || "",
+      channel:  "Test",
+      style_number: Number(order.style_number) || "",
+      size: order.size || "",
+      color: patternData.find((color)=> Number(color.style_number) === Number(order.style_number))?.color || "",
+      status: order?.status || "",
+      found_in_inventory: order.status?.toLowerCase().includes("found") ? true : false
+    }));
+
+    const apiUrl = 'https://fastapi.qurvii.com/sync-orders';
+  
+    const response = await axios.post(apiUrl, payload, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    setSyncOrders(response.data);
+     const syncPayload = {
+  channel: orders[0]?.channel || "",
+  picklist_id: Number(picklistId),
+  sync_id: Number(response.data.sync_id) || ""
+};
+
+console.log("Sending to PicklistAndSyncIdSaver:", syncPayload);
+
+await PicklistAndSyncIdSaver(syncPayload);
+
+    setPicklistId("")
+    setOrders([{status:"synced successfully"}]);
+   
+    console.log(response.data);
+    alert(`${orders.length} synced succsessfully.`)
+  } catch (err) {
+    console.log("Failed to sync orders", err);
+  }
+}
+
+
+
+
+
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -549,6 +539,8 @@ const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
         </div>
 
         {/* Download Reports Section */}
+
+        {orders.length > 0 ? <>
         <div className="mt-8 border-t border-gray-200 pt-6">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Download Reports</h3>
           <div className="space-y-2">
@@ -563,7 +555,7 @@ const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
             </button>
 
             <button
-              onClick={()=>exportToPDF(filteredOrders,patternData,"Cutting Summary")}
+              onClick={()=>exportToPDF(syncOrders.cutting_list,patternData,"Cutting Summary")}
               className="w-full flex items-center justify-between px-3 py-2 bg-red-50 text-yellow-800 rounded-md hover:bg-red-100 text-sm font-medium"
             >
               <span>Cutting Summary</span>
@@ -608,6 +600,7 @@ const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
                 <UploadOptions/>
               </div>
         
+              </> :""}
       </div>
 
       {/* Main Content */}
@@ -615,6 +608,8 @@ const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
         <div className="container mx-auto p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">Order Synchronization</h1>
+          
+
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">
                 Showing {filteredOrders.length} of {orders.length} orders
@@ -626,7 +621,7 @@ const exportToPDF = (data, patternData, fileName = 'Cutting_List') => {
           <div className="bg-white rounded-lg shadow p-6 mb-6">
   
              <div>
-              <PicklistIdInput picklistId={picklistId} setPicklistId={setPicklistId} fetchOrders={fetchOrders} />
+              <PicklistIdInput picklistId={picklistId} setPicklistId={setPicklistId} fetchOrders={fetchOrders} syncOrder = {syncOrdersToFastApi} />
             </div>
           </div>
 
