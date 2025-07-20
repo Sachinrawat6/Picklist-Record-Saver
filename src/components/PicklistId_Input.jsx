@@ -13,7 +13,7 @@ const PicklistIdInput = ({setPicklistId,picklistId,fetchOrders,syncOrder}) => {
         value={picklistId}
         />
         </form>
-        <div>
+        <div className={`${picklistId?.toString().length > 4  ? "block" : "hidden"}`}>
           <button
           className="bg-green-100 text-green-800 py-2 px-4 rounded-md hover:bg-green-200 hover:text-green-900 duration-75 ease-in cursor-pointer"
           onClick={()=> syncOrder()}>Sync Orders</button>

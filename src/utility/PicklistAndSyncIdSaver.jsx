@@ -23,7 +23,7 @@ const PicklistAndSyncIdSaver = async (data) => {
             }
         );
 
-        console.log("Success:", response);
+        // console.log("Success:", response);
         return response.data;
     } catch (err) {
         const errorMessage = err.response?.data?.message || err.message;

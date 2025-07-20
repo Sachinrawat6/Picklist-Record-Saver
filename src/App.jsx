@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Orders from './pages/Orders';
 import SyncLog from "./pages/SyncLog";
 import {PicklistRecordContextProvider} from "./context/PicklistRecordContext"
+import SyncIdRecords from './components/SyncIdRecords';
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
             <Route path="/" element={<Home/>} />
             <Route path="/orders" element={<Orders/>} />
             <Route path="/sync-log" element={<SyncLog/>} />
+            <Route path="/sync-records/:sync_id/:picklist_id" element={<SyncIdRecords/>} />
 
           </Routes>
           </PicklistRecordContextProvider>

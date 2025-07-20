@@ -191,55 +191,112 @@ const SkuScanner = () => {
 
 
 
-  const scanComplete = async () => {
-    
+  // const scanComplete = async () => {
+  //   const confirm = window.prompt("Are you sure to want confirm scan done.?");
+  //   if(!confirm){
+  //     return
+  //   }
 
-    
+  //   const payload = mergedData.map((item) => ({
+  //     style_number: item.styleNumber,
+  //     size: item.size,
+  //     channel,
+  //     picklist_id: picklistId,
+  //     brand: item.Brand,
+  //     status:"",
+  //   }));
 
-    const payload = mergedData.map((item) => ({
+  //   try {
+  //     const ACCESS_TOKEN = "-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1";
+  //     const url = "https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records";
+
+  //     // Simulate progress
+  //     const totalItems = payload.length;
+  //     let processed = 0;
+      
+  //     const batchSize = 10;
+  //     for (let i = 0; i < payload.length; i += batchSize) {
+  //       const batch = payload.slice(i, i + batchSize);
+  //       await axios.post(url, batch, {
+  //         headers: {
+  //           accept: "application/json",
+  //           "content-type": "application/json",
+  //           "xc-token": ACCESS_TOKEN,
+  //         },
+  //       });
+        
+  //       processed += batch.length;
+  //       setSyncProgress(Math.round((processed / totalItems) * 100));
+  //       await new Promise(resolve => setTimeout(resolve, 200));
+  //     }
+
+  //     setShowSuccess(true);
+  //     setSyncCompleted(true); // Mark sync as completed
+  //     setTimeout(() => setShowSuccess(false), 5000);
+  //   } catch (error) {
+  //     console.error("❌ Failed to sync to NocoDB", error);
+  //     alert("Error syncing data to NocoDB");
+  //   } finally {
+  //     setSyncing(false);
+  //   }
+  // };
+
+const scanComplete = async () => {
+  const confirmScan = window.confirm("Are you sure you want to confirm the scan is done?");
+  if (!confirmScan) {
+    return;
+  }
+
+  try {
+    // Your existing scan complete logic
+    const payload = scannedData.map((item) => ({
       style_number: item.styleNumber,
       size: item.size,
-      channel,
+      channel: "your-channel-here", // Make sure to define this
       picklist_id: picklistId,
-      brand: item.Brand,
-      status:"",
+      brand: item.Brand || "", // Handle case where Brand might be undefined
+      status: "scanned",
     }));
 
-    try {
-      const ACCESS_TOKEN = "-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1";
-      const url = "https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records";
+    const ACCESS_TOKEN = "-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1";
+    const url = "https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records";
 
-      // Simulate progress
-      const totalItems = payload.length;
-      let processed = 0;
+    // Simulate progress
+    const totalItems = payload.length;
+    let processed = 0;
+    
+    const batchSize = 10;
+    for (let i = 0; i < payload.length; i += batchSize) {
+      const batch = payload.slice(i, i + batchSize);
+      await axios.post(url, batch, {
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          "xc-token": ACCESS_TOKEN,
+        },
+      });
       
-      const batchSize = 10;
-      for (let i = 0; i < payload.length; i += batchSize) {
-        const batch = payload.slice(i, i + batchSize);
-        await axios.post(url, batch, {
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-            "xc-token": ACCESS_TOKEN,
-          },
-        });
-        
-        processed += batch.length;
-        setSyncProgress(Math.round((processed / totalItems) * 100));
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-
-      setShowSuccess(true);
-      setSyncCompleted(true); // Mark sync as completed
-      setTimeout(() => setShowSuccess(false), 5000);
-    } catch (error) {
-      console.error("❌ Failed to sync to NocoDB", error);
-      alert("Error syncing data to NocoDB");
-    } finally {
-      setSyncing(false);
+      processed += batch.length;
+      // Make sure setSyncProgress is defined if you're using it
+      // setSyncProgress(Math.round((processed / totalItems) * 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
-  };
 
+    // Make sure these state setters are defined
+    // setShowSuccess(true);
+    // setSyncCompleted(true);
+    // setTimeout(() => setShowSuccess(false), 5000);
+    
+    alert("Scan completed successfully!");
+  } catch (error) {
+    console.error("❌ Failed to sync to NocoDB", error);
+    alert("Error syncing data to NocoDB");
+  } finally {
+    // setSyncing(false); // Make sure this is defined
+  }
+};
+
+// In your button JSX:
 
   return (
     <>
@@ -256,7 +313,7 @@ const SkuScanner = () => {
         className="bg-white py-2 px-4 w-lg rounded outline-gray-300 cursor-pointer"
         
         />
-        <button
+        {/* <button
   className={`${
     scannedData.length === 0
       ? "cursor-not-allowed bg-gray-100 text-gray-400"
@@ -266,9 +323,22 @@ const SkuScanner = () => {
   onClick={() => {
     if (scannedData.length > 0) {
       // Add your scan complete logic here
+      scanComplete()
       console.log("Scan complete with data:", scannedData);
     }
   }}
+>
+  Scan Complete
+</button> */}
+
+<button
+  className={`${
+    scannedData.length === 0
+      ? "cursor-not-allowed bg-gray-100 text-gray-400"
+      : "cursor-pointer bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-900"
+  } py-2 px-4 rounded transition-colors duration-75`}
+  disabled={scannedData.length === 0}
+  onClick={scanComplete} // Directly use the function here
 >
   Scan Complete
 </button>
@@ -438,7 +508,7 @@ const SkuScanner = () => {
                   className="h-[64vh]"
                   src={`https://www.myntra.com/coats/qurvii/title/${product.style_id}/buy`}
                   title="Product Display"
-                  frameBorder="0"
+                  
                 ></iframe>
               </div>
 

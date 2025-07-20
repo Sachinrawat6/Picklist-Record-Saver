@@ -20,16 +20,16 @@ const Navbar = () => {
           </div>
           
           <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-            {/* <Link
-              to="/picklist"
+            <Link
+              to="/"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                isActive('/picklist')
+                isActive('/')
                   ? 'border-blue-500 text-gray-900'
                   : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
               }`}
             >
-              Picklist Scanner
-            </Link> */}
+              Home
+            </Link>
             <Link
               to="/sku"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
@@ -61,6 +61,8 @@ const Navbar = () => {
             >
               Sync Log
             </Link>
+
+            
           </div>
           
           {/* Mobile menu button (hidden on desktop) */}
