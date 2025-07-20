@@ -29,7 +29,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
         const style = Number(order.style_number);
         const size = order.size;
         const patternInfo = patternData.find(p => p.style_number === style) || {};
-        const pattern = patternInfo.pattern || '';
+        const pattern = patternInfo.pattern || 'NA';
         const key = `${pattern}-${style}`;
 
         if (!summaryMap[key]) {

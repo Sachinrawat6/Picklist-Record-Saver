@@ -1,10 +1,12 @@
 import axios from "axios"
   const syncOrdersToNocoDb = async (orders,patternData) => {
-    
+    if(orders.length === 0){
+        alert("No orders to sync");
+        return
+    }
     try {
       const payload = orders.map((order) => ({
-        // channel: order.channel || "",
-        channel:  "Test",
+        channel: order.channel || "",
         style_number: Number(order.style_number) || "",
         size: order.size || "",
         color:
