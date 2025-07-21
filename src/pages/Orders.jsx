@@ -561,8 +561,11 @@ const Orders = () => {
     setSyncProgress(0);
 
     try {
-      const payload = orders.map((order) => ({
+      const payload = orders
+      .filter((o)=>o?.status?.toLowerCase().includes("cutting"))
+      .map((order) => ({
         channel: order.channel || "",
+        
         style_number: Number(order.style_number) || "",
         size: order.size || "",
         color: patternData.find((color) => Number(color.style_number) === Number(order.style_number))?.color || "",
@@ -596,7 +599,8 @@ const Orders = () => {
         setPicklistId("");
         setOrders([{status: "synced successfully"}]);
         setIsSyncing(false);
-        alert(`${orders.length} orders synced successfully.`);
+        alert(`${orders.filter((o)=>o?.status.toLowerCase().includes("cutting")).length} orders synced successfully.`);
+        window.location.reload();
       }, 1000);
 
     } catch (err) {
