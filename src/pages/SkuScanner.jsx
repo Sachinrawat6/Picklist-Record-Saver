@@ -301,7 +301,9 @@ const fetchPicklistRecords = async (id) => {
         // Clear the scanned data after successful sync
         setScannedData([]);
         localStorage.removeItem("scannedSkuData");
-      }, 3000);
+      }, 500);
+      window.location.reload();
+
     } catch (error) {
       console.error("❌ Failed to create records in NocoDB", error);
       alert("Error creating records in NocoDB");
