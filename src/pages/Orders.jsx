@@ -562,7 +562,8 @@ const Orders = () => {
 
     try {
       const payload = orders
-      .filter((o)=>o?.status?.toLowerCase().includes("cutting"))
+      .filter((o)=>o?.status?.toLowerCase().includes("cutting") 
+      || o?.status?.toLowerCase().includes("found"))
       .map((order) => ({
         channel: order.channel || "",
         
@@ -599,7 +600,7 @@ const Orders = () => {
         setPicklistId("");
         setOrders([{status: "synced successfully"}]);
         setIsSyncing(false);
-        alert(`${orders.filter((o)=>o?.status.toLowerCase().includes("cutting")).length} orders synced successfully.`);
+        alert(`${orders.filter((o)=>o?.status.toLowerCase().includes("cutting") || o?.status.toLowerCase().includes("found") ).length} orders synced successfully.`);
         window.location.reload();
       }, 1000);
 
