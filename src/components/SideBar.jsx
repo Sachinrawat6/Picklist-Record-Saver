@@ -68,7 +68,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
     // Create PDF
     const doc = new jsPDF();
     doc.setFontSize(14);
-    doc.text('Cutting List Report', 105, 15, { align: 'center' });
+    doc.text(`${data[0]?.channel} Cutting List Report`, 105, 15, { align: 'center' });
     doc.setFontSize(10);
     doc.text(`Date: ${new Date().toLocaleDateString()}`, 105, 22, { align: 'center' });
 
