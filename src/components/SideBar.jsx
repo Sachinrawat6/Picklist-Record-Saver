@@ -129,6 +129,13 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
       return;
     }
 
+    // Sort orders by style_number in descending order
+    foundOrders.sort((a, b) => {
+      const styleA = String(a.style_number || '').toLowerCase();
+      const styleB = String(b.style_number || '').toLowerCase();
+      return styleB.localeCompare(styleA);
+    });
+
     const headers = [
       "Channel", "Style Number", "Size", "Color", "Brand", "Date", "Pattern#", 
       "Style Type", "Style Name", "Style 1", "Style 2", "Accessory 1", 
@@ -275,6 +282,14 @@ const downloadMRPTags = async (status, dataSource) => {
     return;
   }
 
+  // Sort the foundOrders by style_number in descending order
+  foundOrders.sort((a, b) => {
+    const styleA = String(a.style_number || '');
+    const styleB = String(b.style_number || '');
+    return styleB.localeCompare(styleA);
+  });
+
+
   const headers = [
     "Style Number", "Size", "Color", "Brand",
     "Style Name", "(Do not touch) Order Id", "image 100x100 qr image"
@@ -314,6 +329,9 @@ const downloadMRPTags = async (status, dataSource) => {
   link.click();
   document.body.removeChild(link);
 };
+
+
+
   return (
     <div className="bg-white p-6 mt-15 rounded-lg shadow-sm border border-gray-100">
       <div className="mb-8">
