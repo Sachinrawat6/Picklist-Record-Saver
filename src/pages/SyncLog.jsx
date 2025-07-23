@@ -85,17 +85,10 @@ const SyncLog = () => {
             <label htmlFor="channel-filter" className="block text-sm font-medium text-gray-700 mb-1">
               Filter by Channel
             </label>
-            {/* <input
-              type="text"
-              id="channel-filter"
-              placeholder="Enter channel name"
-              value={channelFilter}
-              onChange={(e) => setChannelFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            /> */}
+
 
             <select onChange={(e) => setChannelFilter(e.target.value)}
-              className="border w-full bg-gray-100 py-2 px-4 rounded-md cursor-pointer outline-gray-300"
+              className="border border-gray-300 w-full bg-gray-100 py-2 px-4 rounded-md cursor-pointer outline-gray-300"
               value={channelFilter} >
               <option value="">Select Channel </option>
               <option value="Myntra">Myntra</option>
@@ -114,7 +107,7 @@ const SyncLog = () => {
               id="date-filter"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border bg-gray-100 border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
             {dateFilter && (
               <button
