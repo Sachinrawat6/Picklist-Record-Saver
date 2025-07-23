@@ -3,11 +3,36 @@ import { PulseLoader } from "react-spinners";
 import { useGlobalContext } from "../context/PicklistRecordContext";
 import fetchOrdersFromNocoDbWithSyncId from "../utility/FetchFromNocoDbWithSynId";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+
 const SyncLog = () => {
   const { loading, syncLogData, error, fetchSyncLogData } = useGlobalContext();
+  const [filteredData, setFilteredData] = useState([]);
+  const [channelFilter, setChannelFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+
   console.log(syncLogData);
 
- 
+  useEffect(() => {
+    // Apply filters whenever syncLogData or filter values change
+    let result = syncLogData;
+
+    if (channelFilter) {
+      result = result.filter(record =>
+        record.channel?.toLowerCase().includes(channelFilter.toLowerCase())
+      )
+    }
+
+    if (dateFilter) {
+      const filterDate = new Date(dateFilter).setHours(0, 0, 0, 0);
+      result = result.filter(record => {
+        const recordDate = new Date(record.CreatedAt).setHours(0, 0, 0, 0);
+        return recordDate === filterDate;
+      });
+    }
+
+    setFilteredData(result);
+  }, [syncLogData, channelFilter, dateFilter]);
 
   if (loading) {
     return (
@@ -53,6 +78,56 @@ const SyncLog = () => {
         </p>
       </div>
 
+      {/* Filter Controls */}
+      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="channel-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Channel
+            </label>
+            {/* <input
+              type="text"
+              id="channel-filter"
+              placeholder="Enter channel name"
+              value={channelFilter}
+              onChange={(e) => setChannelFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            /> */}
+
+            <select onChange={(e) => setChannelFilter(e.target.value)}
+              className="border w-full bg-gray-100 py-2 px-4 rounded-md cursor-pointer outline-gray-300"
+              value={channelFilter} >
+              <option value="">Select Channel </option>
+              <option value="Myntra">Myntra</option>
+              <option value="Nykaa">Nykaa </option>
+              <option value="Ajio">Ajio </option>
+              <option value="Tatacliq">Tatacliq </option>
+              <option value="Shopify">Shopify </option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Filter by Date
+            </label>
+            <input
+              type="date"
+              id="date-filter"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+            {dateFilter && (
+              <button
+                onClick={() => setDateFilter("")}
+                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+              >
+                Clear date filter
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white shadow-md rounded-lg overflow-hidden ring-1 ring-gray-200">
         <table className="min-w-full divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-100">
@@ -78,8 +153,8 @@ const SyncLog = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {syncLogData.length > 0 ? (
-              syncLogData.map((record, i) => (
+            {filteredData.length > 0 ? (
+              filteredData.map((record, i) => (
                 <tr
                   key={record.id || i}
                   className="hover:bg-gray-50 transition"
@@ -116,10 +191,10 @@ const SyncLog = () => {
             ) : (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={6}
                   className="text-center py-6 text-gray-500 italic"
                 >
-                  No sync records found.
+                  {syncLogData.length === 0 ? "No sync records found." : "No records match your filters."}
                 </td>
               </tr>
             )}
