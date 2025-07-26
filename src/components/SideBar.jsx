@@ -349,7 +349,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
       }
       try {
         // Assuming syncOrdersToNocoDb is an async function that returns the synced orders
-        const alterData = dataSource.filter((o) => o?.status.toLowerCase().includes("alter"));
+        const alterData = dataSource.filter((o) => o?.status.toLowerCase().includes(`${status}`));
         const response = await syncOrdersToNocoDb(alterData, patternData);
         setAlterSyncOrder(response);
         // console.log(response.all_orders)
@@ -381,9 +381,14 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
     });
 
 
+    // const headers = [
+    //   "Style Number", "Size", "Color", "Brand",
+    //   "Style Name", "(Do not touch) Order Id", "image 100x100 qr image"
+    // ];
     const headers = [
-      "Style Number", "Size", "Color", "Brand",
-      "Style Name", "(Do not touch) Order Id", "image 100x100 qr image"
+      "Channel", "Style Number", "Size", "Color", "Brand", "Date", "Pattern#",
+      "Style Type", "Style Name", "Style 1", "Style 2", "Accessory 1",
+      "Accessory 2", "Wash Care", "(Do not touch) Order Id", "image 100x100 qr image", "(Do not touch) Order Id"
     ];
 
     const csvRows = [headers.join(',')];
@@ -393,15 +398,37 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
         (p) => p.style_number === order.style_number
       ) || {};
 
+      // const row = [
+      //   // `"${order.style_number || ''}"`,
+      //   // `"${order.size || ''}"`,
+      //   // `"${pattern.color || 'Other'}"`,
+      //   // `"${order.brand || 'Qurvii'}"`,
+      //   // `"${pattern.style_name || 'Qurvii Products'}"`,
+      //   // `"${order.order_id || ''}"`,
+      //   `"https://quickchart.io/qr?text=${order.order_id || ''}"`
+      // ];
+
+
       const row = [
+        `"${order.channel || 'NA'}"`,
         `"${order.style_number || ''}"`,
         `"${order.size || ''}"`,
-        `"${pattern.color || 'Other'}"`,
+        `"${pattern.color || "Other"}"`,
         `"${order.brand || 'Qurvii'}"`,
-        `"${pattern.style_name || 'Qurvii Products'}"`,
+        `"${order.created_at || new Date().toLocaleString()}"`,
+        `"${pattern.pattern || "NA"}"`,
+        `"${pattern.style_type || "NA"}"`,
+        `"${pattern.style_name || "Qurvii Products"}"`,
+        `"${pattern.style_1 || ""}"`,
+        `"${pattern.style_2 || ""}"`,
+        `"${pattern.accessory1 || ""}"`,
+        `"${pattern.accessory2 || ""}"`,
+        `"${pattern.wash_care || ""}"`,
         `"${order.order_id || ''}"`,
-        `"https://quickchart.io/qr?text=${order.order_id || ''}"`
+        `"https://quickchart.io/qr?text=${order.order_id || ''}"`,
+        `"${order.order_id || ''}"`,
       ];
+
 
       csvRows.push(row.join(','));
     });
@@ -414,7 +441,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
     link.href = url;
     link.setAttribute(
       'download',
-      `MRP_Tags_${status}_${new Date().toISOString().split('T')[0]}.csv`
+      `MRP_Tags_AND_QR_CODE_SHHEET${status}_${new Date().toISOString().split('T')[0]}.csv`
     );
     document.body.appendChild(link);
     link.click();
