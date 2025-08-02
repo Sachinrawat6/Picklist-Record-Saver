@@ -35,7 +35,7 @@ const Orders = () => {
   });
 
   const { syncLogData } = useGlobalContext();
-  
+
 
   const fetchProducts = async () => {
     const response = await fetch(
@@ -50,49 +50,49 @@ const Orders = () => {
   }, []);
 
   //  Fetch orders from API
-    const fetchOrders = async () => {
-  setLoading(true);
+  const fetchOrders = async () => {
+    setLoading(true);
 
-  if (!picklistId) {
-    alert("Please scan picklist id");
-    setLoading(false);
-    return;
-  }
-
-  const pageSize = 100;
-  let offset = 0;
-  let allOrders = [];
-
-  try {
-    while (true) {
-      const url = `https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records?where=(picklist_id,eq,${Number(picklistId)})&limit=${pageSize}&offset=${offset}`;
-
-      const response = await axios.get(url, {
-        headers: {
-          'xc-token': '-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1',
-        },
-      });
-
-      const pageOrders = response.data.list || [];
-      allOrders = allOrders.concat(pageOrders);
-
-      if (pageOrders.length < pageSize) {
-        break; // No more pages
-      }
-
-      offset += pageSize;
+    if (!picklistId) {
+      alert("Please scan picklist id");
+      setLoading(false);
+      return;
     }
 
-    setOrders(allOrders);
-    setError(null);
-    updateSidebarCounts(allOrders, 'all');
-  } catch (err) {
-    setError('Failed to fetch orders');
-    console.error('Error fetching orders:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+    const pageSize = 100;
+    let offset = 0;
+    let allOrders = [];
+
+    try {
+      while (true) {
+        const url = `https://app.nocodb.com/api/v2/tables/mbce0t4pf72vu3j/records?where=(picklist_id,eq,${Number(picklistId)})&limit=${pageSize}&offset=${offset}`;
+
+        const response = await axios.get(url, {
+          headers: {
+            'xc-token': '-0XAccEvsn8koGW5MKQ79LoPj07lxk_1ldqDmuv1',
+          },
+        });
+
+        const pageOrders = response.data.list || [];
+        allOrders = allOrders.concat(pageOrders);
+
+        if (pageOrders.length < pageSize) {
+          break; // No more pages
+        }
+
+        offset += pageSize;
+      }
+
+      setOrders(allOrders);
+      setError(null);
+      updateSidebarCounts(allOrders, 'all');
+    } catch (err) {
+      setError('Failed to fetch orders');
+      console.error('Error fetching orders:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   // Update sidebar counts
@@ -101,8 +101,8 @@ const Orders = () => {
       channel === "all"
         ? orders
         : orders.filter(
-            (o) => o.channel?.toLowerCase() === channel.toLowerCase()
-          );
+          (o) => o.channel?.toLowerCase() === channel.toLowerCase()
+        );
 
     setSidebarCounts({
       all: filteredByChannel.length,
@@ -176,9 +176,9 @@ const Orders = () => {
     const foundOrders =
       syncOrders?.cutting_list.length > 0
         ? // ? syncOrders
-          // : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
+        // : filteredOrders.filter(o => o.status?.toLowerCase() === 'found')
 
-          syncOrders
+        syncOrders
         : syncOrders;
 
     if (foundOrders.length === 0) {
@@ -206,14 +206,12 @@ const Orders = () => {
       const row = [
         `"${order.style_number || ""}"`,
         `"${order.size || ""}"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .color || "Other"
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .color || "Other"
         }"`,
         `"${order.brand || "Qurvii"}"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .style_name || "Qurvii Products"
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .style_name || "Qurvii Products"
         }"`,
         `"${order.order_id || ""}"`,
         `"https://quickchart.io/qr?text=${order.order_id || ""}"`,
@@ -293,43 +291,34 @@ const Orders = () => {
         `"${order.channel || "NA"}"`,
         `"${order.style_number || ""}"`,
         `"${order.size || ""}"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .color || "Other"
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .color || "Other"
         }"`,
         `"${order.brand || "Qurvii"}"`,
         `"${order.created_at || new Date().toLocaleString()}"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .pattern || "NA"
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .pattern || "NA"
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .style_type || "NA"
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .style_type || "NA"
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .style_name || "Qurvii Products"
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .style_name || "Qurvii Products"
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .style_1 || ""
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .style_1 || ""
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .style_2 || ""
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .style_2 || ""
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .accessory1 || ""
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .accessory1 || ""
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .accessory2 || ""
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .accessory2 || ""
         }"`,
-        `"${
-          patternData.find((o) => o.style_number === order.style_number)
-            .wash_care || ""
+        `"${patternData.find((o) => o.style_number === order.style_number)
+          .wash_care || ""
         }"`,
         `"${order.order_id || ""}"`,
         `"https://quickchart.io/qr?text=${order.order_id || ""}"`,
@@ -360,10 +349,9 @@ const Orders = () => {
       data.map((order) => ({
         "Picklist ID": order.picklist_id,
         Channel: order.channel,
-        Sku: `${order.style_number}-${
-          patternData.find((o) => o.style_number === order.style_number)
+        Sku: `${order.style_number}-${patternData.find((o) => o.style_number === order.style_number)
             .color || "Other"
-        }-${order.size}`,
+          }-${order.size}`,
         "#Pattern No":
           patternData.find((o) => o.style_number === order.style_number)
             .pattern || "",
@@ -562,17 +550,17 @@ const Orders = () => {
 
     try {
       const payload = orders
-      .filter((o)=>o?.status?.toLowerCase().includes("cutting") 
-      || o?.status?.toLowerCase().includes("found"))
-      .map((order) => ({
-        channel: order.channel || "",
-        
-        style_number: Number(order.style_number) || "",
-        size: order.size || "",
-        color: patternData.find((color) => Number(color.style_number) === Number(order.style_number))?.color || "",
-        status: order?.status || "",
-        found_in_inventory: order.status?.toLowerCase().includes("found") || order.status?.toLowerCase().includes("alter") ? true : false
-      }));
+        .filter((o) => o?.status?.toLowerCase().includes("cutting")
+          || o?.status?.toLowerCase().includes("found"))
+        .map((order) => ({
+          channel: order.channel || "",
+
+          style_number: Number(order.style_number) || "",
+          size: order.size || "",
+          color: patternData.find((color) => Number(color.style_number) === Number(order.style_number))?.color || "",
+          status: order?.status || "",
+          found_in_inventory: order.status?.toLowerCase().includes("found") || order.status?.toLowerCase().includes("alter") ? true : false
+        }));
 
       const apiUrl = 'https://fastapi.qurvii.com/sync-orders';
       const response = await axios.post(apiUrl, payload, {
@@ -598,9 +586,9 @@ const Orders = () => {
       setSyncProgress(100);
       setTimeout(() => {
         setPicklistId("");
-        setOrders([{status: "synced successfully"}]);
+        setOrders([{ status: "synced successfully" }]);
         setIsSyncing(false);
-        alert(`${orders.filter((o)=>o?.status.toLowerCase().includes("cutting") || o?.status.toLowerCase().includes("found") ).length} orders synced successfully.`);
+        alert(`${orders.filter((o) => o?.status.toLowerCase().includes("cutting") || o?.status.toLowerCase().includes("found")).length} orders synced successfully.`);
         window.location.reload();
       }, 1000);
 
@@ -712,19 +700,17 @@ const Orders = () => {
               <li key={item.value}>
                 <button
                   onClick={() => setSelectedStatus(item.value)}
-                  className={`w-full flex justify-between items-center px-3 py-2 rounded-md text-sm ${
-                    selectedStatus === item.value
+                  className={`w-full flex justify-between items-center px-3 py-2 rounded-md text-sm ${selectedStatus === item.value
                       ? `bg-${item.color}-100 text-${item.color}-800 font-medium`
                       : "text-gray-700 hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   <span>{item.label}</span>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      selectedStatus === item.value
+                    className={`px-2 py-1 rounded-full text-xs ${selectedStatus === item.value
                         ? `bg-${item.color}-200 text-${item.color}-800`
                         : "bg-gray-200 text-gray-600"
-                    }`}
+                      }`}
                   >
                     {item.count}
                   </span>
@@ -871,8 +857,8 @@ const Orders = () => {
           {/* Filters Card */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div>
-              <PicklistIdInput picklistId={picklistId} setPicklistId={setPicklistId} fetchOrders={fetchOrders} syncOrder = {syncOrdersToFastApi} />
-             
+              <PicklistIdInput picklistId={picklistId} setPicklistId={setPicklistId} fetchOrders={fetchOrders} syncOrder={syncOrdersToFastApi} />
+
             </div>
           </div>
 

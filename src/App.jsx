@@ -6,25 +6,28 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Orders from './pages/Orders';
 import SyncLog from "./pages/SyncLog";
-import {PicklistRecordContextProvider} from "./context/PicklistRecordContext"
+import { PicklistRecordContextProvider } from "./context/PicklistRecordContext"
 import SyncIdRecords from './components/SyncIdRecords';
+import UpdateStatus from './pages/UpdateStatus';
 
 const App = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-100">
-       <Navbar/>
+        <Navbar />
         <main className="w-full mx-auto">
           <PicklistRecordContextProvider>
-          <Routes>
-            <Route path="/picklist" element={<PicklistScanner />} />
-            <Route path="/sku" element={<SkuScanner />} />
-            <Route path="/" element={<Home/>} />
-            <Route path="/orders" element={<Orders/>} />
-            <Route path="/sync-log" element={<SyncLog/>} />
-            <Route path="/sync-records/:sync_id/:picklist_id" element={<SyncIdRecords/>} />
+            <Routes>
+              <Route path="/picklist" element={<PicklistScanner />} />
+              <Route path="/sku" element={<SkuScanner />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/sync-log" element={<SyncLog />} />
+              <Route path="/sync-records/:sync_id/:picklist_id" element={<SyncIdRecords />} />
+              <Route path="/update-status" element={<UpdateStatus />} />
 
-          </Routes>
+
+            </Routes>
           </PicklistRecordContextProvider>
         </main>
 

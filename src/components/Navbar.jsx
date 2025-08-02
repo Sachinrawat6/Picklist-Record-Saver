@@ -18,53 +18,61 @@ const Navbar = () => {
               <span className="text-blue-600">Inventory</span> Scanner
             </h1>
           </div>
-          
+
           <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
             <Link
               to="/"
-              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                isActive('/')
-                  ? 'border-blue-500 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-              }`}
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
             >
               Home
             </Link>
             <Link
               to="/sku"
-              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                isActive('/sku')
-                  ? 'border-blue-500 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-              }`}
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/sku')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
             >
               SKU Scanner
             </Link>
             <Link
               to="/orders"
-              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                isActive('/orders')
-                  ? 'border-blue-500 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-              }`}
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/orders')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
             >
               Orders
             </Link>
 
-             <Link
+            {/* updated links in v2  */}
+            <Link
+              to="/update-status"
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/update-status')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+            >
+              Update
+            </Link>
+
+
+            <Link
               to="/sync-log"
-              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                isActive('/sync-log')
-                  ? 'border-blue-500 text-gray-900'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-              }`}
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/sync-log')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
             >
               Sync Log
             </Link>
 
-            
+
           </div>
-          
+
           {/* Mobile menu button (hidden on desktop) */}
           <div className="-mr-2 flex items-center sm:hidden">
             <button
@@ -100,31 +108,28 @@ const Navbar = () => {
         <div className="pt-2 pb-3 space-y-1">
           <Link
             to="/picklist"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-              isActive('/picklist')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            }`}
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive('/picklist')
+              ? 'bg-blue-50 border-blue-500 text-blue-700'
+              : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              }`}
           >
             Picklist Scanner
           </Link>
           <Link
             to="/sku"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-              isActive('/sku')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            }`}
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive('/sku')
+              ? 'bg-blue-50 border-blue-500 text-blue-700'
+              : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              }`}
           >
             SKU Scanner
           </Link>
           <Link
             to="/orders"
-            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-              isActive('/orders')
-                ? 'bg-blue-50 border-blue-500 text-blue-700'
-                : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
-            }`}
+            className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${isActive('/orders')
+              ? 'bg-blue-50 border-blue-500 text-blue-700'
+              : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+              }`}
           >
             Orders
           </Link>
