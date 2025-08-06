@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import patternData from "../csvjson.json";
+// import patternData from "../csvjson.json";
 import UploadOptions from './UploadOptions';
 import syncOrdersToNocoDb from "../utility/SyncOrderToNocoDb"
 import axios from "axios"
+import { useGlobalContext } from '../context/PicklistRecordContext';
 
 const SideBar = ({ syncOrders, picklistRecords }) => {
+  const { patterns: patternData } = useGlobalContext();
+  console.log(patternData.find((p => p.style_number == 15020)))
   const [showDropdown, setShowDropdown] = useState(false);
   const [alterSyncOrders, setAlterSyncOrder] = useState([]);
   const pendingCount = syncOrders.filter((o) => o.status === "pending").length;
@@ -106,7 +109,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
       .forEach(order => {
         const style = Number(order.style_number);
         const size = order.size;
-        const patternInfo = patternData.find(p => p.style_number === style) || {};
+        const patternInfo = patternData.find(p => p.style_number == style) || {};
         const pattern = patternInfo.pattern || 'NA';
         const key = `${pattern}-${style}`;
 
@@ -236,7 +239,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
     const csvRows = [headers.join(',')];
 
     foundOrders.forEach(order => {
-      const pattern = patternData.find((o) => o.style_number === order.style_number) || {};
+      const pattern = patternData.find((o) => o.style_number == order.style_number) || {};
       const row = [
         `"${order.channel || 'NA'}"`,
         `"${order.style_number || ''}"`,
@@ -395,7 +398,7 @@ const SideBar = ({ syncOrders, picklistRecords }) => {
 
     foundOrders.forEach(order => {
       const pattern = patternData.find(
-        (p) => p.style_number === order.style_number
+        (p) => p.style_number == order.style_number
       ) || {};
 
       // const row = [

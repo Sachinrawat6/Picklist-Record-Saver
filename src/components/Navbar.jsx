@@ -70,6 +70,24 @@ const Navbar = () => {
               Sync Log
             </Link>
 
+            <Link
+              to="/upload-pattern"
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/upload-pattern')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+            >
+              Upload
+            </Link>
+            <Link
+              to="/patterns"
+              className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${isActive('/patterns')
+                ? 'border-blue-500 text-gray-900'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+            >
+              Patterns
+            </Link>
 
           </div>
 

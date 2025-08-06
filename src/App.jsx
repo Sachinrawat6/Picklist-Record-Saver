@@ -9,6 +9,8 @@ import SyncLog from "./pages/SyncLog";
 import { PicklistRecordContextProvider } from "./context/PicklistRecordContext"
 import SyncIdRecords from './components/SyncIdRecords';
 import UpdateStatus from './pages/UpdateStatus';
+import UploadPatterns from './pages/UploadPatterns';
+import Patterns from './pages/Patterns';
 
 const App = () => {
   return (
@@ -25,6 +27,8 @@ const App = () => {
               <Route path="/sync-log" element={<SyncLog />} />
               <Route path="/sync-records/:sync_id/:picklist_id" element={<SyncIdRecords />} />
               <Route path="/update-status" element={<UpdateStatus />} />
+              <Route path='/upload-pattern' element={<UploadPatterns />} />
+              <Route path='/patterns' element={<Patterns />} />
 
 
             </Routes>
