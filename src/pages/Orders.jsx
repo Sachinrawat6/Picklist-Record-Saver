@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 
 import patternData from "../csvjson.json";
 import { useGlobalContext } from "../context/PicklistRecordContext";
+import sendOrdersSummaryToEmail from "../services/orderNotifyService";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -84,6 +85,7 @@ const Orders = () => {
       }
 
       setOrders(allOrders);
+      // console.log(allOrders)
       setError(null);
       updateSidebarCounts(allOrders, 'all');
     } catch (err) {
@@ -350,7 +352,7 @@ const Orders = () => {
         "Picklist ID": order.picklist_id,
         Channel: order.channel,
         Sku: `${order.style_number}-${patternData.find((o) => o.style_number === order.style_number)
-            .color || "Other"
+          .color || "Other"
           }-${order.size}`,
         "#Pattern No":
           patternData.find((o) => o.style_number === order.style_number)
@@ -460,6 +462,50 @@ const Orders = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+
+  // **************** send order summary to email ***************************
+  const sendOrdersSummaryToMail = async () => {
+    try {
+      const alterOrders = orders.filter(o => o.status.toLowerCase() === "alter");
+      const noFabricOrders = orders.filter(o => o.status.toLowerCase() === "no fabric");
+
+      const payload = {
+        Channel: orders[0]?.channel || "",
+        TotalOrders: orders.length,
+        FoundInInventory: orders.filter(o => o.status.toLowerCase() === "found").length,
+        Alter: [
+          {
+            "Total Quantity": alterOrders.length,
+            items: alterOrders.map(o => ({
+              "Style Number": o.style_number,
+              "Size": o.size,
+            }))
+          }
+        ],
+        NoFabric: [
+          {
+            "Total Quantity": noFabricOrders.length,
+            items: noFabricOrders.map(o => ({
+              "Style Number": o.style_number,
+              "Size": o.size,
+            }))
+          }
+        ],
+        Cutting: orders.filter(o => o.status.toLowerCase() === "cutting").length,
+        "Picklist Search By (Employee ID)": orders[0]?.employee_id || "",
+      };
+
+      const response = await sendOrdersSummaryToEmail(payload);
+      console.log(response);
+    } catch (error) {
+      console.error("Failed to send orders to mail", error);
+    }
+  };
+
+
+
+
 
   // *************************************Order synchronization ***********************************
 
@@ -582,6 +628,7 @@ const Orders = () => {
 
       console.log("Sending to PicklistAndSyncIdSaver:", syncPayload);
       await PicklistAndSyncIdSaver(syncPayload);
+      await sendOrdersSummaryToMail();
 
       setSyncProgress(100);
       setTimeout(() => {
@@ -599,6 +646,13 @@ const Orders = () => {
       alert("Failed to sync orders. Please try again.");
     }
   };
+
+
+
+
+
+
+
 
 
   if (loading) {
@@ -701,15 +755,15 @@ const Orders = () => {
                 <button
                   onClick={() => setSelectedStatus(item.value)}
                   className={`w-full flex justify-between items-center px-3 py-2 rounded-md text-sm ${selectedStatus === item.value
-                      ? `bg-${item.color}-100 text-${item.color}-800 font-medium`
-                      : "text-gray-700 hover:bg-gray-100"
+                    ? `bg-${item.color}-100 text-${item.color}-800 font-medium`
+                    : "text-gray-700 hover:bg-gray-100"
                     }`}
                 >
                   <span>{item.label}</span>
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${selectedStatus === item.value
-                        ? `bg-${item.color}-200 text-${item.color}-800`
-                        : "bg-gray-200 text-gray-600"
+                      ? `bg-${item.color}-200 text-${item.color}-800`
+                      : "bg-gray-200 text-gray-600"
                       }`}
                   >
                     {item.count}
@@ -858,7 +912,9 @@ const Orders = () => {
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div>
               <PicklistIdInput picklistId={picklistId} setPicklistId={setPicklistId} fetchOrders={fetchOrders} syncOrder={syncOrdersToFastApi} />
-
+              {/* <button
+                onClick={sendOrdersSummaryToMail}
+                className="bg-black py-2 px-4 rounded text-white mt-4 ">Send to mail </button> */}
             </div>
           </div>
 
