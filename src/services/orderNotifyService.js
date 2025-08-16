@@ -4,6 +4,7 @@ const sendOrdersSummaryToEmail = async (data) => {
     try {
         const response = await axios.post(
             "https://inventorybackend-m1z8.onrender.com/api/v1/order/send",
+            // "http://localhost:4000/api/v1/order/send",
             data,
             { headers: { "Content-Type": "application/json" } }
         );
