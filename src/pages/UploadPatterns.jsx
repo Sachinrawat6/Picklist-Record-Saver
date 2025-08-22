@@ -144,7 +144,7 @@ const PatternUpload = () => {
             )}
 
             {/* Buttons - Upload only shows when file is selected */}
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-4">
                 {file && !uploading && (
                     <button
                         onClick={handleUpload}
@@ -160,6 +160,11 @@ const PatternUpload = () => {
                 >
                     Reset
                 </button>
+                <div>
+                    <a
+                        className='bg-purple-400 py-2 px-4 rounded text-white hover:bg-purple-500 ease-in duration-75'
+                        href="./pattern.csv">Download Patterns</a>
+                </div>
             </div>
 
             {uploadResult && (

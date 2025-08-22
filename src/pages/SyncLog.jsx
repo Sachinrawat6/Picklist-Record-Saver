@@ -59,12 +59,12 @@ const SyncLog = () => {
           </svg>
           <span>{error}</span>
         </div>
-        <button
+        {/* <button
           onClick={fetchSyncLogData}
           className="mt-3 text-sm font-medium text-red-600 hover:underline"
         >
           Retry
-        </button>
+        </button> */}
       </div>
     );
   }
